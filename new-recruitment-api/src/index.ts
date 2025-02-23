@@ -3,10 +3,12 @@ import { open } from "sqlite";
 
 const main = async () => {
   const db = await open({
-    filename: ":memory:",
+    filename: "./database.db",
     driver: sqlite3.Database,
   });
-  await db.migrate();
+  await db.migrate({
+    migrationsPath: './migrations'
+  });
 };
 
 main();

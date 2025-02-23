@@ -117,9 +117,9 @@ export const addCandidate = async (req: Request, res: Response): Promise<void> =
       updatedAt: new Date().toISOString(),
     };
 
-    const existingCandidate = await candidatesDB.get('SELECT Candidate WHERE email = ?', email);
-    console.log(existingCandidate)
-    if (existingCandidate) {
+    const existingCandidate = await candidatesDB.get('SELECT * FROM Candidate WHERE email = ?', email);
+    console.log(Object.values(existingCandidate))
+    if (Object.values(existingCandidate).length) {
         res
         .status(409)
         .json({ message: "Candidate with this email already exists." });
@@ -133,15 +133,27 @@ export const addCandidate = async (req: Request, res: Response): Promise<void> =
     }
 
     try {
-      await legacyApiClient.createCandidate({
+      const response =  await legacyApiClient.createCandidate({
         name: `${firstName} ${lastName}`,
         email: email,
       });
+      // TODO: handle response error
     } catch (error) {
       console.error('Legacy system sync failed:', error);
     }
 
-    candidatesDB.run(`INSERT INTO Candidate ?`, newCandidate);
+    await candidatesDB.run(`INSERT INTO Candidate (first_name, last_name, email, phone, years_of_experience, consent_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
+      newCandidate.firstName,
+      newCandidate.lastName,
+      newCandidate.email,
+      newCandidate.phone,
+      newCandidate.yearsOfExperience,
+      newCandidate.consentDate,
+      newCandidate.createdAt,
+      newCandidate.updatedAt
+    ]);
+
+    // TODO: insert default relations
 
      res
       .status(201)
