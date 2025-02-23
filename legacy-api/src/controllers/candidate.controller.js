@@ -15,7 +15,7 @@ const validateCandidate = (candidate) => {
     errors.push("Email is required");
   }
 
-  if (!/\S+@\S+\.\S+/.test(candidate.email)) {
+if (!/\S+@\S+\.\S+/.test(candidate.email)) {
     errors.push("Invalid email format");
   }
 
