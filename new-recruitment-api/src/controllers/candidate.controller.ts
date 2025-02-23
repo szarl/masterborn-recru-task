@@ -117,8 +117,8 @@ export const addCandidate = async (req: Request, res: Response): Promise<void> =
       updatedAt: new Date().toISOString(),
     };
 
-    const existingCandidate = candidatesDB.get('SELECT Candidate WHERE email = ?', email);
-    
+    const existingCandidate = await candidatesDB.get('SELECT Candidate WHERE email = ?', email);
+    console.log(existingCandidate)
     if (existingCandidate) {
         res
         .status(409)
@@ -152,161 +152,161 @@ export const addCandidate = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-export const getCandidates = async (req: Request<{}, {}, {}, PaginationQuery>, res: Response): Promise<void> => {
-  try {
-    const page = parseInt(req.query.page || '1');
-    const jobOfferId = req.query.jobOfferId;
+// export const getCandidates = async (req: Request<{}, {}, {}, PaginationQuery>, res: Response): Promise<void> => {
+//   try {
+//     const page = parseInt(req.query.page || '1');
+//     const jobOfferId = req.query.jobOfferId;
     
-    let filteredCandidates = await candidatesDB.all('SELECT * FROM Candidate', (test, foo) => {
+//     let filteredCandidates = await candidatesDB.all('SELECT * FROM Candidate', (test, foo) => {
 
-    });
+//     });
 
-    if (jobOfferId) {
-      filteredCandidates = filteredCandidates.filter(candidate => 
-        candidate.jobOfferIds.includes(parseInt(jobOfferId))
-      );
-    }
+//     if (jobOfferId) {
+//       filteredCandidates = filteredCandidates.filter(candidate => 
+//         candidate.jobOfferIds.includes(parseInt(jobOfferId))
+//       );
+//     }
 
-    const totalCandidates = filteredCandidates.length;
-    const totalPages = Math.ceil(totalCandidates / ITEMS_PER_PAGE);
+//     const totalCandidates = filteredCandidates.length;
+//     const totalPages = Math.ceil(totalCandidates / ITEMS_PER_PAGE);
     
-    const paginatedCandidates = filteredCandidates
-      .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+//     const paginatedCandidates = filteredCandidates
+//       .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-     res.status(200).json({
-      candidates: paginatedCandidates,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems: totalCandidates,
-        itemsPerPage: ITEMS_PER_PAGE
-      }
-    });
-  } catch (error) {
-    console.error('Error getting candidates:', error);
-     res.status(500).json({ message: "Internal server error" });
-  }
-};
+//      res.status(200).json({
+//       candidates: paginatedCandidates,
+//       pagination: {
+//         currentPage: page,
+//         totalPages,
+//         totalItems: totalCandidates,
+//         itemsPerPage: ITEMS_PER_PAGE
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error getting candidates:', error);
+//      res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
-export const getCandidateById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const candidate = candidatesDB.find(c => c.id === id);
+// export const getCandidateById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+//     const candidate = candidatesDB.find(c => c.id === id);
 
-    if (!candidate) {
-       res.status(404).json({ message: "Candidate not found" });
-    }
+//     if (!candidate) {
+//        res.status(404).json({ message: "Candidate not found" });
+//     }
 
-     res.status(200).json(candidate);
-  } catch (error) {
-    console.error('Error getting candidate:', error);
-     res.status(500).json({ message: "Internal server error" });
-  }
-};
+//      res.status(200).json(candidate);
+//   } catch (error) {
+//     console.error('Error getting candidate:', error);
+//      res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
-export const updateCandidate = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const updateData: Partial<Candidate> = req.body;
+// export const updateCandidate = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+//     const updateData: Partial<Candidate> = req.body;
     
-    const candidateIndex = candidatesDB.findIndex(c => c.id === id);
+//     const candidateIndex = candidatesDB.findIndex(c => c.id === id);
     
-    if (candidateIndex === -1) {
-       res.status(404).json({ message: "Candidate not found" });
-    }
+//     if (candidateIndex === -1) {
+//        res.status(404).json({ message: "Candidate not found" });
+//     }
 
-    if (updateData.email && updateData.email !== candidatesDB[candidateIndex].email) {
-      const emailExists = candidatesDB.some(
-        c => c.email === updateData.email && c.id !== id
-      );
-      if (emailExists) {
-         res.status(409).json({ message: "Email already in use" });
-      }
-    }
+//     if (updateData.email && updateData.email !== candidatesDB[candidateIndex].email) {
+//       const emailExists = candidatesDB.some(
+//         c => c.email === updateData.email && c.id !== id
+//       );
+//       if (emailExists) {
+//          res.status(409).json({ message: "Email already in use" });
+//       }
+//     }
 
-    const updatedCandidate: Candidate = {
-      ...candidatesDB[candidateIndex],
-      ...updateData,
-      updatedAt: new Date().toISOString()
-    };
+//     const updatedCandidate: Candidate = {
+//       ...candidatesDB[candidateIndex],
+//       ...updateData,
+//       updatedAt: new Date().toISOString()
+//     };
 
-    const { isValid, errors } = validateCandidate(updatedCandidate);
-    if (!isValid) {
-       res
-        .status(400)
-        .json({ message: "Validation failed", errors });
-    }
+//     const { isValid, errors } = validateCandidate(updatedCandidate);
+//     if (!isValid) {
+//        res
+//         .status(400)
+//         .json({ message: "Validation failed", errors });
+//     }
 
-    candidatesDB[candidateIndex] = updatedCandidate;
+//     candidatesDB[candidateIndex] = updatedCandidate;
 
-     res.status(200).json({
-      message: "Candidate updated successfully",
-      candidate: updatedCandidate
-    });
-  } catch (error) {
-    console.error('Error updating candidate:', error);
-     res.status(500).json({ message: "Internal server error" });
-  }
-};
+//      res.status(200).json({
+//       message: "Candidate updated successfully",
+//       candidate: updatedCandidate
+//     });
+//   } catch (error) {
+//     console.error('Error updating candidate:', error);
+//      res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
-export const deleteCandidate = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const candidateIndex = candidatesDB.findIndex(c => c.id === id);
+// export const deleteCandidate = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+//     const candidateIndex = candidatesDB.findIndex(c => c.id === id);
 
-    if (candidateIndex === -1) {
-       res.status(404).json({ message: "Candidate not found" });
-    }
+//     if (candidateIndex === -1) {
+//        res.status(404).json({ message: "Candidate not found" });
+//     }
 
-    try {
-      await legacyApiClient.deleteCandidate(candidatesDB[candidateIndex].email);
-    } catch (error) {
-      console.error('Legacy system delete failed:', error);
-    }
+//     try {
+//       await legacyApiClient.deleteCandidate(candidatesDB[candidateIndex].email);
+//     } catch (error) {
+//       console.error('Legacy system delete failed:', error);
+//     }
 
-    candidatesDB.splice(candidateIndex, 1);
+//     candidatesDB.splice(candidateIndex, 1);
 
-     res.status(200).json({ message: "Candidate deleted successfully" });
-  } catch (error) {
-    console.error('Error deleting candidate:', error);
-     res.status(500).json({ message: "Internal server error" });
-  }
-};
+//      res.status(200).json({ message: "Candidate deleted successfully" });
+//   } catch (error) {
+//     console.error('Error deleting candidate:', error);
+//      res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
-export const addCandidateNote = async (
-  req: Request<{ id: string }, {}, { content: string; recruiterId: number }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { content, recruiterId } = req.body;
+// export const addCandidateNote = async (
+//   req: Request<{ id: string }, {}, { content: string; recruiterId: number }>,
+//   res: Response
+// ): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+//     const { content, recruiterId } = req.body;
 
-    const candidate = candidatesDB.find(c => c.id === id);
+//     const candidate = candidatesDB.find(c => c.id === id);
     
-    if (!candidate) {
-       res.status(404).json({ message: "Candidate not found" });
-    }
+//     if (!candidate) {
+//        res.status(404).json({ message: "Candidate not found" });
+//     }
 
-    if (!content) {
-       res.status(400).json({ message: "Note content is required" });
-    }
+//     if (!content) {
+//        res.status(400).json({ message: "Note content is required" });
+//     }
 
-    const newNote: Note = {
-      id: Date.now().toString(),
-      content,
-      recruiterId,
-      createdAt: new Date().toISOString()
-    };
+//     const newNote: Note = {
+//       id: Date.now().toString(),
+//       content,
+//       recruiterId,
+//       createdAt: new Date().toISOString()
+//     };
 
-    candidate.notes.push(newNote);
-    candidate.updatedAt = new Date().toISOString();
+//     candidate.notes.push(newNote);
+//     candidate.updatedAt = new Date().toISOString();
 
-     res.status(201).json({
-      message: "Note added successfully",
-      note: newNote
-    });
-  } catch (error) {
-    console.error('Error adding note:', error);
-     res.status(500).json({ message: "Internal server error" });
-  }
-};
+//      res.status(201).json({
+//       message: "Note added successfully",
+//       note: newNote
+//     });
+//   } catch (error) {
+//     console.error('Error adding note:', error);
+//      res.status(500).json({ message: "Internal server error" });
+//   }
+// };
