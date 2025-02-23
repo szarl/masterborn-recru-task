@@ -6,9 +6,7 @@ const main = async () => {
     filename: "./database.db",
     driver: sqlite3.Database,
   });
-  await db.migrate({
-    migrationsPath: './migrations'
-  });
+  await db.migrate();
 };
 
 main();

@@ -1,4 +1,4 @@
-import {describe, expect, jest, test } from '@jest/globals';
+import {describe, expect, jest, it } from '@jest/globals';
 
 import request from "supertest";
 
@@ -7,8 +7,8 @@ import { legacyApiClient } from '../src/legacyApiClient';
 
 const LEGACY_API_KEY = process.env.LEGACY_API_KEY || 'default-key';
 
-describe("Add Candidate", () => {
-  test("Shoudl create candidate", async () => {
+describe("/POST candidates", () => {
+  it("Should create candidate", async () => {
     jest.spyOn(legacyApiClient, 'createCandidate').mockImplementation(async () => new Response())
     const candidate = {
         firstName: "John",
@@ -41,5 +41,24 @@ describe("Add Candidate", () => {
       }
     });
   });
+
+  it("Should throw an error when legacy api key is missing", async () => {
+        const candidate = {
+            firstName: "John",
+            lastName: "Doe",
+            phone: "+48123456789",
+            email: `${new Date().getTime()}@test.pl`,
+            yearsOfExperience: 5,
+            consentDate: new Date().toISOString(),
+            currentStatusId: 1,
+            jobOfferIds: [1]
+        }
+
+        const res = await request(app).post("/candidates").send(candidate);
+        expect(res.status).toStrictEqual(403);
+        expect(res.body).toStrictEqual({
+            message: "Forbidden: Invalid API Key"
+        });
+    });
 });
     
